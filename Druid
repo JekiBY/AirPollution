@@ -1,0 +1,151 @@
+###  pyDruid WTF!!!!!!!!!!!??????????????
+"""
+from pydruid.client import *
+query = PyDruid('   , 'druid/v2/')
+
+
+raw_data = query.select(
+            datasource=" ",
+            granularity='all',
+            intervals = "2017-06-10/2017-06-11",
+            paging_spec={'pagingIdentifies': {}, 'threshold': 2},
+            context={"timeout": 1000}
+)
+
+
+#error but shows smth
+for k in range(2):
+    print ( raw_data[k] )
+
+
+raw_data.export_tsv('C:/Contest/select.tsv')
+
+"""
+###JSON SOURCE  INLINE TEST
+x = """[
+  {
+    "timestamp": "2017-05-30T01:07:38.558Z",
+    "result": {
+      "pagingIdentifiers": {
+        "rnox_test_2_2017-05-30T01:00:00.000Z_2017-05-30T02:00:00.000Z_2017-05-30T01:08:58.148Z": 0,
+        "rnox_test_2_2017-05-30T03:00:00.000Z_2017-05-30T04:00:00.000Z_2017-05-30T03:02:20.140Z": 0,
+        "rnox_test_2_2017-05-30T03:00:00.000Z_2017-05-30T04:00:00.000Z_2017-05-30T03:02:20.140Z_1": 0
+      },
+      "dimensions": [
+        "sensor_id",
+        "req_id",
+        "device_id",
+        "sensor_type"
+      ],
+      "metrics": [
+        "temp",
+        "ppb",
+        "count",
+        "rhdigital",
+        "pm2",
+        "PM2",
+        "pm1",
+        "PM1",
+        "rh",
+        "adccount",
+        "pm3",
+        "PM3",
+        "tempdigital"
+      ],
+      "events": [
+        {
+          "segmentId": "rnox_test_2_2017-05-30T01:00:00.000Z_2017-05-30T02:00:00.000Z_2017-05-30T01:08:58.148Z",
+          "offset": 0,
+          "event": {
+            "timestamp": "2017-05-30T01:07:38.558Z",
+            "sensor_id": "api-test-sensor-01",
+            "device_id": "api-test-device-01",
+            "sensor_type": "api-test",
+            "temp": -56.0,
+            "ppb": 694458.0,
+            "rh": 28.0,
+            "adccount": 33,
+            "count": 1
+          }
+        },
+        {
+          "segmentId": "rnox_test_2_2017-05-30T03:00:00.000Z_2017-05-30T04:00:00.000Z_2017-05-30T03:02:20.140Z",
+          "offset": 0,
+          "event": {
+            "timestamp": "2017-05-30T03:01:00.336Z",
+            "sensor_id": "api-test-sensor-00",
+            "device_id": "api-test-device-01",
+            "sensor_type": "DSG-O3",
+            "temp": 24.0,
+            "ppb": 6236.0,
+            "rh": 50.0,
+            "adccount": 13542,
+            "count": 1
+          }
+        },
+        {
+          "segmentId": "rnox_test_2_2017-05-30T03:00:00.000Z_2017-05-30T04:00:00.000Z_2017-05-30T03:02:20.140Z_1",
+          "offset": 0,
+          "event": {
+            "timestamp": "2017-05-30T03:03:08.498Z",
+            "sensor_id": "api-test-sensor-02",
+            "device_id": "api-test-device-01",
+            "sensor_type": "DSG-SO2",
+            "temp": 24.0,
+            "ppb": 341.0,
+            "rh": 50.0,
+            "adccount": 32931,
+            "count": 1
+          }
+        }
+      ]
+    }
+  }
+]"""  
+threshold = 20000
+# load data using postman & POST request
+# http://broker.druid2.services.adx1.com/druid/v2/
+"""
+{
+   "queryType": "select",
+   "dataSource": "rnox_test_2",
+   "descending": "false",
+   "dimensions":[],
+   "metrics":[],
+   "granularity": "all",
+   "intervals": [
+     "2017-05-29/2017-07-30"
+   ],
+   "pagingSpec":{"pagingIdentifiers": {}, "threshold":20000}
+   """
+with open('C:/Contest/response20k') as f:
+    x = f.read()
+    f.close
+ ############################################################################################################################
+##########################################################################################!!!!!!!!!
+#from __future__ import unicode_literals  # Only needed for Python 2
+import numpy as np
+from jsontraverse.parser import JsonTraverseParser
+parser = JsonTraverseParser(x)
+        
+###################################################### 
+#L1 - event index L2 - event attribute index  
+df = pd.DataFrame(columns=("timestamp", "sensor_id", "device_id", "sensor_type", "temp", "ppb", "rh", "adccount", "count"))
+
+for L1 in range(threshold):
+    L = list()
+    a=[]
+    for L2 in ["timestamp", "sensor_id", "device_id", "sensor_type", "temp", "ppb", "rh", "adccount", "count"]:
+        XX2 =parser.traverse("result.events."+str(L1)+".event."+str(L2))
+        L.append(XX2)
+    a = np.array(L)
+    a = a.reshape((1, 9))
+    df2 = pd.DataFrame(data = a, columns=("timestamp", "sensor_id", "device_id", "sensor_type", "temp", "ppb", "rh", "adccount", "count"))
+    df = df.append(df2, ignore_index=True)
+
+#print (df )
+
+#df.to_csv('C:/Contest/transformedjson20k.csv', sep = ';')
+
+
+          
